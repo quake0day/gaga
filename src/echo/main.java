@@ -1,3 +1,4 @@
+package echo;
 import java.io.*;
 import java.net.*;
 
@@ -16,7 +17,7 @@ public class main {
         BufferedReader in = null;
 
         try {
-            echoSocket = new Socket(serverHostname, 10008);
+            echoSocket = new Socket(serverHostname, 10023);
             out = new PrintWriter(echoSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(
                                         echoSocket.getInputStream()));
@@ -33,16 +34,24 @@ public class main {
                                    new InputStreamReader(System.in));
 	String userInput;
 
-        System.out.println ("Type Message (\"Bye.\" to quit)");
+    System.out.println ("Type Message (\"Bye.\" to quit)");
 	while ((userInput = stdIn.readLine()) != null) 
            {
+        if (userInput.equals("Bye."))
+        {
+            break;
+        }
+        else if (userInput.equals("info"))
+        {
+        	out.println(userInput);
+
+        }
+        else{
 	    out.println(userInput);
-
-            // end loop
-            if (userInput.equals("Bye."))
-                break;
-
 	    System.out.println("echo: " + in.readLine());
+        }
+            // end loop
+	    
 	   }
 
 	out.close();
