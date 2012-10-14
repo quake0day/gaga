@@ -4,13 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.ArrayList;
 
 public class Monitor extends Thread{
 	private String tcpport;
 	private String udpport;
-	 public Monitor (String udpportin, String tcpportin){
+	private ArrayList<Socket> client;
+	
+	 public Monitor (String udpportin, String tcpportin, ArrayList<Socket> clients){
 	   tcpport = tcpportin;
 	   udpport = udpportin;
+	   client = clients;
 	   }
 	 public void run(){
 	     PrintWriter out = null;
@@ -49,24 +54,49 @@ public class Monitor extends Thread{
 			    	String tcp = command[2];
 			    	// create new thread connect to handle this request
 			    	// see Connect.java for more detail
-			    	Thread connect = new Thread(new Connect(ipaddr,tcp));	
+			    	Thread connect = new Thread(new Connect(ipaddr,tcp,new echoer()));	
+			    	
 			    	}
 			    }	   
 			    else if (userInput.equals("show"))
 			    {
-			    	System.out.println("Now you hit show");
-			 	 Thread thread = new Thread(new Justtest());
-			     thread.start();
-
+			    	//System.out.println("Now you hit show");
+			    	Thread shows = new Thread(new show(client));
+			    
 			    }	        
 			    else if (userInput.equals("send"))
 			    {
-			    	System.out.println("Now you hit send");
+			    	
+			    	// for send command, a user should provide 3 parameter
+			    	if(command.length != 3){
+			    		System.out.println("Usage:sned <conn-id> <message>");
+			    	}
+			    	else{		
+			    	String connid = command[1];
+			    	String message = command[2];
+			    	// create new thread connect to handle this request
+			    	// see Connect.java for more detail
+			    	Thread send = new Thread(new Send(connid,message,new echoer()));	
+			    	
+			    	}
 
 			    }
 			    else if (userInput.equals("sendto"))
 			    {
 			    	System.out.println("Now you hit sendto");
+			    	for(int id =0 ; id < echoer.clients.size() ; id++)
+			    	{
+			    		PrintWriter outServer = null;
+			            try {
+			    			outServer = new PrintWriter(echoer.clients.get(id).getOutputStream(), 
+			    			        true);
+			    		} catch (IOException e) {
+			    			// TODO Auto-generated catch block
+			    			System.out.println("Wrong conn-id");
+			    		} 
+			            //System.out.println("sendMessage is :"+sendmessage);
+			    		outServer.println("FUCKYOU");
+			    	}
 
 			    }
 			    else{

@@ -17,7 +17,7 @@ public class main {
         BufferedReader in = null;
 
         try {
-            echoSocket = new Socket(serverHostname, 10023);
+            echoSocket = new Socket(serverHostname, 10024);
             out = new PrintWriter(echoSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(
                                         echoSocket.getInputStream()));
