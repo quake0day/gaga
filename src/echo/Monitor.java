@@ -12,11 +12,30 @@ public class Monitor extends Thread{
 	private String udpport;
 	private ArrayList<Socket> client;
 	
-	 public Monitor (String udpportin, String tcpportin, ArrayList<Socket> clients){
+	public Monitor (String udpportin, String tcpportin, ArrayList<Socket> clients){
 	   tcpport = tcpportin;
 	   udpport = udpportin;
 	   client = clients;
 	   }
+	 
+	 // Judge whether s is a valid IPV4 address
+	 public static boolean isIPV4(String s){
+		 try{
+			 String number = s.substring(0,s.indexOf('.'));
+			 if(Integer.parseInt(number) > 255) return false;
+			 for(int i=0; i < 2; i++){
+				 s = s.substring(s.indexOf('.')+1);
+				 //System.out.println(s);
+				 number = s.substring(0,s.indexOf('.'));
+				 if(Integer.parseInt(number) > 255) return false;
+			 }
+			 return true;
+			
+		 } catch(Exception e){
+			 return false;
+		 }
+		 
+	 }
 	 public void run(){
 	     PrintWriter out = null;
 	     BufferedReader in = null;
@@ -26,6 +45,7 @@ public class Monitor extends Thread{
 	     
 		 while(true)
 		 { 
+			 
 		 try {
 			 	//obtain user input
 			    userInput = stdIn.readLine();
@@ -66,16 +86,30 @@ public class Monitor extends Thread{
 			    }	        
 			    else if (userInput.equals("send"))
 			    {
-			    	
-			    	// for send command, a user should provide 3 parameter
-			    	if(command.length != 3){
-			    		System.out.println("Usage:sned <conn-id> <message>");
+			    	String message = null;
+			    	int connid = 0;
+			    	// for send command, a user should provide at least 3 parameter
+			    	if(command.length < 3){
+			    		System.out.println("Usage:send <conn-id> <message>");
 			    	}
 			    	else{		
-			    	String connid = command[1];
-			    	String message = command[2];
-			    	// create new thread connect to handle this request
-			    	// see Connect.java for more detail
+			    		try{
+			    			connid = Integer.parseInt(command[1]);
+			    		} catch(NumberFormatException e){
+			    			System.out.println("The conn-id you input is not a valid one ");
+			    		}
+			    	for(int i=2; i < command.length; i++){
+			    		if(message == null){
+			    			message = command[i];
+			    		}
+			    		else{
+			    			message = message +" "+ command[i] ;
+			    		}
+			    	
+			    	}
+
+					// create new thread connect to handle this request
+			    	// see Send.java for more detail
 			    	Thread send = new Thread(new Send(connid,message,new echoer()));	
 			    	
 			    	}
@@ -83,21 +117,46 @@ public class Monitor extends Thread{
 			    }
 			    else if (userInput.equals("sendto"))
 			    {
-			    	System.out.println("Now you hit sendto");
-			    	for(int id =0 ; id < echoer.clients.size() ; id++)
-			    	{
-			    		PrintWriter outServer = null;
-			            try {
-			    			outServer = new PrintWriter(echoer.clients.get(id).getOutputStream(), 
-			    			        true);
-			    		} catch (IOException e) {
-			    			// TODO Auto-generated catch block
-			    			System.out.println("Wrong conn-id");
-			    		} 
-			            //System.out.println("sendMessage is :"+sendmessage);
-			    		outServer.println("FUCKYOU");
+			    	String message = null;
+			    	String ipaddr = null;
+			    	int udpport = 0;
+			    	int err = 0;
+			    	// for sendto command, a user should provide at least 3 parameter
+			    	if(command.length < 4){
+			    		System.out.println("Usage:sendto <ip-address> <udp-port> <message>");
+			    		err = 1;
 			    	}
+			    	else{		
+			    		if(isIPV4(command[1])){
+			    			ipaddr = command[1];
+			    		}
+			    		else{
+			    			System.out.println("The ip-address you input is not a valid one ");
+			    			err = 1;
+			    		}
+			    		try{
+			    			udpport = Integer.parseInt(command[2]);
+			    		} catch(NumberFormatException e){
+			    			System.out.println("The udp-port you input is not a valid one ");
+			    			err = 1;
+			    		}
+			    	}
+				    	for(int i=3; i < command.length; i++){
+				    		if(message == null){
+				    			message = command[i];
+				    		}
+				    		else{
+				    			message = message +" "+ command[i] ;
+				    		}
+			    	}
+				    	if(err == 0){
+				    	//System.out.println(isIPV4("256.244.42.12"));
+				    	Thread sendto = new Thread(new Sendto(ipaddr,udpport,message));
+				    	}
 
+					// create new thread connect to handle this request
+			    	// see Sendto.java for more detail
+			    //		
 			    }
 			    else{
 
@@ -110,7 +169,7 @@ public class Monitor extends Thread{
 		}
 
 		    try {
-				currentThread().sleep(5);
+				currentThread().sleep(50);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

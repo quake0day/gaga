@@ -44,7 +44,6 @@ public class Connect extends Thread{
 	}
 	public Connect(Socket socket) {
 		// TODO Auto-generated constructor stub
-		System.out.println("Now..I made a mistake..");
 		echoSocket = socket;
 		echo.clients.add(socket);	
 		start();
@@ -56,7 +55,6 @@ public class Connect extends Thread{
         String inputLine;
         
 		
-		System.out.println("I win!");
 		try {
 			in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
 		} catch (IOException e) {

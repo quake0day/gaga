@@ -1,9 +1,14 @@
 package echo;
 import java.net.*; 
+import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -18,8 +23,9 @@ import com.sun.corba.se.impl.orbutil.closure.Future;
 public class server extends Thread
 { 
 
- //private SocketChannel clientSocketChannel;
-// private Selector selector;
+ private static final long TIMEOUT = 3000;
+private SocketChannel clientSocketChannel;
+ private Selector selector;
  protected Socket clientSocket;
 
  public static int count = 0;
@@ -28,8 +34,9 @@ public class server extends Thread
  public ArrayList<Socket> clients = null;
 // List<Client> clients = new ArrayList<Client>();
  private echoer echo;
+ private int bufSize;
  public server (echoer echo) throws IOException, InterruptedException
-   {
+   {/*
 	 //set the max size of socket pool
 	 this.echo = echo;
 	 
@@ -45,14 +52,7 @@ public class server extends Thread
 
 	 serverSocket = new ServerSocket(10024); 
 	 System.out.println ("Connection Socket Created");
-	 // Create the selector
-	 //selector = Selector.open();
-	 //ServerSocketChannel serverSocketChannel = ServerSocketChannel.open(); 
-	 //serverSocketChannel.socket().bind(new InetSocketAddress(10021));
-	 // set it to non-blocking mode
-	 //serverSocketChannel.configureBlocking(false);
-     //System.out.println ("Connection Socket Created");
-     //System.out.println ("Waiting for Connection");
+
 
      
      // Register the channel with selector, listening for all events
@@ -61,19 +61,20 @@ public class server extends Thread
     	 //ThreadGroup clientgroup = new ThreadGroup("clientgroup");
     	 //Thread client = new Thread(new server(serverSocket.accept())); 
     	// pool.submit((Callable<String>) new server(serverSocket.accept()));
+    
     	 threadPool.submit(new server(serverSocket.accept()));
-    	 
+   
     	 
     // clientSocketChannel = serverSocketChannel.accept(); 
     
      }
-     
+     */
      
    }
 
  private server (Socket clientSoc) throws IOException
  {
-
+/*
 	 System.out.println ("I'm still runnnn");
 
   //clientSocket = clientSoc;
@@ -85,7 +86,7 @@ public class server extends Thread
 
      System.out.println("Info: The connection between this machine and "+
 			 clientSoc.getInetAddress()+" "+clientSoc.getPort() +" is successfully estabilshed");
- 
+ */
   start();
  }
  
@@ -93,6 +94,138 @@ public class server extends Thread
 
  public void run()
    {
+	 
+	 // Create the selector
+	 try {
+		selector = Selector.open();
+	} catch (IOException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	 ServerSocketChannel serverSocketChannel = null;
+	try {
+		serverSocketChannel = ServerSocketChannel.open();
+	} catch (IOException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	} 
+	 try {
+		serverSocketChannel.socket().bind(new InetSocketAddress(10021));
+	} catch (IOException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	 // set it to non-blocking mode
+	 try {
+		serverSocketChannel.configureBlocking(false);
+	} catch (IOException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	 try {
+		serverSocketChannel.register(selector,SelectionKey.OP_ACCEPT);
+	} catch (ClosedChannelException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+	}
+	 
+	 while(true){
+		 try {
+			if(selector.select(TIMEOUT) == 0){
+				 continue;
+			 }
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  try {
+				currentThread().sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 Iterator<SelectionKey> KeyIter = selector.selectedKeys().iterator();
+		 ByteBuffer readBuff = ByteBuffer.allocate(1024);
+		 final int PACKAGE_SIZE = 10;
+		 while(KeyIter.hasNext()){
+			 SelectionKey key = KeyIter.next(); // key is bit mask
+			 if(key.isAcceptable()){
+				 System.out.println("I'm HERE");
+				 try {
+					SocketChannel clntChan = ((ServerSocketChannel) key.channel()).accept();
+					clntChan.configureBlocking(false);
+					
+					clntChan.register(key.selector(), SelectionKey.OP_READ,ByteBuffer.allocate(bufSize));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				 
+			 }
+			if(key.isReadable()){
+				
+				SocketChannel clntChan = (SocketChannel) key.channel();
+				Socket client = clntChan.socket();
+				//ByteBuffer buf = (ByteBuffer) key.attachment();
+				long bytesRead = -1;
+				try {
+					bytesRead = clntChan.read(readBuff);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				key.interestOps(SelectionKey.OP_READ);
+				System.out.println("client IP:"+client.getInetAddress().getHostAddress());
+				if(readBuff.position() >= PACKAGE_SIZE)
+				{
+					readBuff.flip();
+					DataInputStream dis = new DataInputStream(new ByteArrayInputStream(readBuff.array()));
+					try {
+						System.out.println(dis.readInt());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					BufferedReader d = new BufferedReader(new InputStreamReader(dis));
+					try {
+						System.out.println(d.readLine());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					key.cancel();
+
+					readBuff.clear();
+				} else {
+					try {
+						clntChan.register(selector,SelectionKey.OP_READ);
+					} catch (ClosedChannelException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
+			//	String received = Charset.forName("UTF-8").newDecoder().decode(bytesRead).toString();
+				
+				if(bytesRead == -1){
+		
+						System.out.println("nothing");
+						continue;
+					
+				} else if (bytesRead > 0){
+					key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+				}
+				
+			}
+			KeyIter.remove();
+		 }
+	 }
+	 // craeta a handler that will implement the protocol
+	// TCPProtocol protocol = new EchoSelectorProtocol(BUFSIZE);
+     //System.out.println ("Connection Socket Created");
+     //System.out.println ("Waiting for Connection");
+	 
+	 /*
 	PrintWriter outServer = null;
 	int index = echo.clients.size()-1;
     try { 
@@ -124,7 +257,7 @@ public class server extends Thread
          System.exit(1); 
         } 
         
-    }
+    }*/
  
  /*
   class Client implements Runnable{
@@ -188,6 +321,6 @@ public class server extends Thread
 		 
 	}*/
 
-    
+   } 
 }
 

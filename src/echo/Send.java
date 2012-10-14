@@ -9,9 +9,9 @@ public class Send extends Thread {
 	private echoer echoer;
 	private int id;
 	private String sendmessage;
-	public Send(String connid, String message,echoer echo){
+	public Send(int connid, String message,echoer echo){
 		this.echoer = echo;
-		id = Integer.parseInt(connid);
+		id = connid;
 		sendmessage = message;
 		run();
 	}
@@ -20,12 +20,13 @@ public class Send extends Thread {
         try {
 			outServer = new PrintWriter(echoer.clients.get(id).getOutputStream(), 
 			        true);
+			outServer.println(sendmessage);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			System.out.println("Wrong conn-id");
+			System.out.println("The conn-id you input is not a valid one ");
 		} 
-       System.out.println("sendMessage is :"+sendmessage);
-		outServer.println(sendmessage);
+        //System.out.println("sendMessage is :"+sendmessage);
+		
 	}
 
 }
