@@ -88,7 +88,7 @@ public class Monitor extends Thread{
 			    {
 			    	String message = null;
 			    	int connid = 0;
-			    	// for send command, a user should provide at least 3 parameter
+			    	// for send command, a user should provide at least 3 parameters
 			    	if(command.length < 3){
 			    		System.out.println("Usage:send <conn-id> <message>");
 			    	}
@@ -121,7 +121,7 @@ public class Monitor extends Thread{
 			    	String ipaddr = null;
 			    	int udpport = 0;
 			    	int err = 0;
-			    	// for sendto command, a user should provide at least 3 parameter
+			    	// for sendto command, a user should provide at least 3 parameters
 			    	if(command.length < 4){
 			    		System.out.println("Usage:sendto <ip-address> <udp-port> <message>");
 			    		err = 1;
@@ -157,6 +157,24 @@ public class Monitor extends Thread{
 					// create new thread connect to handle this request
 			    	// see Sendto.java for more detail
 			    //		
+			    }
+			    else if (userInput.equals("disconnect")){
+			    	int connid = 0;
+			    	// for disconnect command, a user should provide at least 2 parameters
+			    	if(command.length < 2){
+			    		System.out.println("Usage:disconnect <conn-id>");
+			    	}
+			    	else{		
+			    		try{
+			    			connid = Integer.parseInt(command[1]);
+			    		} catch(NumberFormatException e){
+			    			System.out.println("The conn-id you input is not a valid one ");
+			    		}
+			    		Thread connect = new Thread(new Disconnect(connid,new echoer()));
+			    	}
+			    	
+			    	
+			    		
 			    }
 			    else{
 
