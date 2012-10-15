@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -14,30 +15,42 @@ public class Connect extends Thread{
 	
 	private String ipadd;
 	private int tcpport;
-	public int maxsize = 8;
+	public int maxsize = 50;
 	private Socket echoSocket = null;
 	echoer echo;
 	public Connect (String ipaddr, String tcp,echoer echo) throws IOException{
 		ipadd = ipaddr;
 		tcpport = Integer.parseInt(tcp);
 		this.echo = echo;
-		
-
-        
-        
         ExecutorService threadPool = Executors.newFixedThreadPool(maxsize);
+        boolean connectable = true;
+        //System.out.println(ipadd.toString().equals("127.0.0.1"));
+        InetAddress addr = null;
+        String localip = null;
+        addr = InetAddress.getLocalHost();
+        localip = addr.getHostAddress().toString();
+        if(ipadd.toString().equals("127.0.0.1") || ipadd.toString().equals("localhost") || ipadd.toString().equals(localip)){
+        	connectable = false;
+        }
+        if(connectable){
 		try {
 			//echoSocket = new Socket(ipadd, tcpport);
+			
 			threadPool.submit(new Connect(new Socket(ipadd,tcpport)));
 			
 			System.out.println("Info: The connection between this machine and "+ipadd+" "+tcpport +" is successfully estabilshed");
 			
+			
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("cannot connect to this Host. Connection refused");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("cannot connect to this Host. Connection refused");
+		}
+        }
+        else{
+			System.out.println("Cannot connect to itself...");
 		}
 
 	    

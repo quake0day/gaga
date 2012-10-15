@@ -8,11 +8,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class Monitor extends Thread{
-	private String tcpport;
-	private String udpport;
+	private int tcpport;
+	private int udpport;
 	private ArrayList<Socket> client;
 	
-	public Monitor (String udpportin, String tcpportin, ArrayList<Socket> clients){
+	public Monitor (int udpportin, int tcpportin, ArrayList<Socket> clients){
 	   tcpport = tcpportin;
 	   udpport = udpportin;
 	   client = clients;
@@ -47,12 +47,15 @@ public class Monitor extends Thread{
 		 { 
 			 
 		 try {
+			    System.out.print("Echoer:");
 			 	//obtain user input
 			    userInput = stdIn.readLine();
 			    // split user input by space and save it to an matrix
 			    String[] command = userInput.split(" "); 
 			    // the first character should be a command
 			    userInput = command[0];
+			    
+			    
 			    if (userInput.equals("Bye."))
 			    {
 			        break;
@@ -61,7 +64,8 @@ public class Monitor extends Thread{
 			    {
 			    	// create new thread info to handle this request
 			    	// see Info.java for more detail
-			 	    Thread info = new Thread(new Info(udpport,tcpport));			     
+			 	    Thread info = new Thread(new Info(udpport,tcpport));
+			 	   
 			    }
 			    else if (userInput.equals("connect"))
 			    {
@@ -81,7 +85,7 @@ public class Monitor extends Thread{
 			    else if (userInput.equals("show"))
 			    {
 			    	//System.out.println("Now you hit show");
-			    	Thread shows = new Thread(new show(client));
+			    	Thread shows = new Thread(new show(client,new echoer()));
 			    
 			    }	        
 			    else if (userInput.equals("send"))
@@ -179,6 +183,7 @@ public class Monitor extends Thread{
 			    else{
 
 			    System.out.println("unknown command");
+			   
 			    }
 				
 		} catch (IOException e1) {

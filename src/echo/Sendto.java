@@ -38,37 +38,36 @@ public class Sendto extends Thread{
 		}
 		socket.setSoTimeout(TIMEOUT);
 		sendPacket = new DatagramPacket(bytesToSend,bytesToSend.length,serverAddress,udpport);
+		receivePacket = new DatagramPacket(new byte[bytesToSend.length],bytesToSend.length);
 		
-		System.out.println("in sendto");
 		run();
 	}
 	public void run(){
 		boolean receivedResponse = false;
 		int tries=0;
-		//do{
+		do{
 			try {
 				socket.send(sendPacket); // send the udp string
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 
-			
-		/*	
-			try {
 				socket.receive(receivePacket);
 				if(!receivePacket.getAddress().equals(serverAddress)){
-					throw new IOException("Received packet from an unknown source");
+					throw new IOException("Unknown source..");
 				}
 				receivedResponse = true;
-			} catch(InterruptedIOException e){
-				tries ++;
-				System.out.println("Timed out..."+(MAXTRIES - tries ) + " more tries...");
-			} catch (IOException e) {
+				String recData = new String(receivePacket.getData());
+				System.out.println("echoing: "+recData);
+				//System.out.println("	To: IP = "+receivePacket.getAddress().toString());
+				//System.out.println("	type:udp");
+			}catch(InterruptedIOException e){
+				tries += 1;
+			}
+				catch (IOException e) {
+		
+			
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-			*/
-		//}while((!receivedResponse) && (tries < MAXTRIES));
+				}
+			} while((!receivedResponse) && (tries < MAXTRIES));
+			
 		socket.close();
 	}
 

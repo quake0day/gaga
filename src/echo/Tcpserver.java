@@ -34,15 +34,22 @@ private SocketChannel clientSocketChannel;
  public ArrayList<Socket> clients = null;
  private echoer echo;
  private int bufSize;
- public Tcpserver (echoer echo) throws IOException, InterruptedException
+ private int port;
+ public Tcpserver (int tcpport,echoer echo) throws IOException, InterruptedException
    {
 	 //set the max size of socket pool
+	 this.port = tcpport;
 	 this.echo = echo;
 	 ServerSocket serverSocket = null; 
 	 socketArray = new Socket[maxsize];
 	 ExecutorService threadPool = Executors.newFixedThreadPool(maxsize);
-	 serverSocket = new ServerSocket(10024); 
-	 System.out.println ("Connection Socket Created");
+	 try{
+		 serverSocket = new ServerSocket(port); 
+	 } catch(Exception e){
+		 System.out.println("You're using a port that cannot Establish TCP connection, program halt...");
+		 System.exit(1);
+	 }
+	// System.out.println ("Connection Socket Created");
      while(true){
     	 threadPool.submit(new Tcpserver(serverSocket.accept()));
      }
@@ -53,8 +60,8 @@ private SocketChannel clientSocketChannel;
  {
      clientSocket = clientSoc;
      echo.clients.add(clientSoc);
-     System.out.println("Info: The connection between this machine and "+
-			 clientSoc.getInetAddress()+" "+clientSoc.getPort() +" is successfully estabilshed");
+     System.out.println("get Conn. request from "+
+			 clientSoc.getInetAddress().toString()+ "\n The TCP connection is successfully estabilshed");
      start();
  }
  public void run()
@@ -74,7 +81,9 @@ private SocketChannel clientSocketChannel;
              if (inputLine.equals("Bye.")) 
                  break; 
              else{
-              System.out.println ("Server: " + inputLine); 
+              System.out.println ("		echoing: " + inputLine); 
+              System.out.println ("		to: IP = "+echo.clients.get(index).getInetAddress().toString());
+              System.out.println ("		type = tcp");
               outServer.println(inputLine); 
              }
              } 

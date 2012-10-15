@@ -13,7 +13,7 @@ public class Disconnect extends Thread{
 	}
 	public void run(){
 		Socket soc = null;
-		System.out.println("I'mhee");
+		
 		soc = echoer.clients.get(connid);
 		echoer.clients.remove(connid);
 		try {		
@@ -22,6 +22,7 @@ public class Disconnect extends Thread{
 			// TODO Auto-generated catch block
 			System.out.println("cannot close this id...");
 		}
+		System.out.println("The connection (ID:"+connid+") is successfully disconnect :)");
 		
 	}
 

@@ -6,23 +6,30 @@ import java.util.concurrent.Executors;
 import java.io.*; 
 
 
+
 public class echoer extends Thread{
 	protected Socket clientSocket;
 	private static Thread server;
-	private static String tcpport;
-	private static String udpport;
+	private static int tcpport;
+	private static int udpport;
 	public static ArrayList<Socket> clients = new ArrayList<Socket>();
 	public static void main(String[] args) throws IOException, InterruptedException {
 		int maxsize=9;
 		ExecutorService threadPool = Executors.newFixedThreadPool(maxsize);
 		if (args.length > 0){
-            tcpport = args[0];
-			udpport = args[1];
+			
+				tcpport = Integer.parseInt(args[0]);
+				udpport = Integer.parseInt(args[1]);
+				if(tcpport < 0 && tcpport > 60000 && udpport < 0 && udpport > 60000){
+					System.err.println("Error when try to listen to tcp-port:"+tcpport+" and udpport:"+udpport);
+					System.exit(1);
+				}
 		}
 		else
 		{
-			tcpport = "999";
-			udpport = "8888";
+
+			System.out.println("Usage: java Echoer <tcp-port> <udp-port>");
+			System.exit(1);
 		}
 		
 		String serverHostname = new String ("localhost");
@@ -39,12 +46,12 @@ public class echoer extends Thread{
 			 */
 			 echoer echoer = new echoer();
 			 threadPool.submit(new Monitor(tcpport,udpport,clients));
-			 Thread quake1 = new Thread(new Justtest());
+		//	 Thread quake1 = new Thread(new Justtest());
 
-			 Thread quake = new Thread(new Udpserver(10030));
-			 Thread quake0day = new Thread(new Tcpserver(echoer));
+			 Thread quake = new Thread(new Udpserver(udpport));
+			 Thread quake0day = new Thread(new Tcpserver(tcpport,echoer));
 			 quake.start();
-			 quake1.start();
+		//	 quake1.start();
 			 //quake0day.start();
 			 
 			 
@@ -57,7 +64,7 @@ public class echoer extends Thread{
 	        } 
 	    catch (IOException e) 
 	        { 
-	         System.err.println("Could not listen on port: 10008."); 
+	         System.err.println("Error when try to listen to tcp-port:"+tcpport+" and udpport:"+udpport); 
 	         System.exit(1); 
 	        } catch (InterruptedException e) {
 			// TODO Auto-generated catch block
