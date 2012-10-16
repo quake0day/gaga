@@ -24,6 +24,10 @@ public class echoer extends Thread{
 					System.err.println("Error when try to listen to tcp-port:"+tcpport+" and udpport:"+udpport);
 					System.exit(1);
 				}
+				else if (tcpport == udpport){
+					System.err.println("Error when try to listen to tcp-port:"+tcpport+" and udpport:"+udpport);
+					System.exit(1);
+				}
 		}
 		else
 		{

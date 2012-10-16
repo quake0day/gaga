@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,15 +33,26 @@ public class Connect extends Thread{
         if(ipadd.toString().equals("127.0.0.1") || ipadd.toString().equals("localhost") || ipadd.toString().equals(localip)){
         	connectable = false;
         }
+        // judge hostname
+		try {
+			InetAddress ip_connectable = InetAddress.getByName(ipadd);					
+		} catch (UnknownHostException e1) {
+			System.out.println("Enter valid host name");
+			connectable = false;
+		}
+		
+		Iterator<Socket> iter = echo.clients.iterator();
+		//  duplicate?
+		while(iter.hasNext()){
+			if(ipadd.equals(iter.next().getInetAddress().toString().split("/")[1])){
+				connectable = false;
+			}
+		}
         if(connectable){
 		try {
 			//echoSocket = new Socket(ipadd, tcpport);
-			
 			threadPool.submit(new Connect(new Socket(ipadd,tcpport)));
-			
 			System.out.println("Info: The connection between this machine and "+ipadd+" "+tcpport +" is successfully estabilshed");
-			
-			
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			System.out.println("cannot connect to this Host. Connection refused");
@@ -50,7 +62,7 @@ public class Connect extends Thread{
 		}
         }
         else{
-			System.out.println("Cannot connect to itself...");
+			System.out.println("Cannot connect to itself and it may have duplicate connection.");
 		}
 
 	    

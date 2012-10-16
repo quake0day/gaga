@@ -15,5 +15,3 @@ HelloWorld :
 clean:
 	@- $(RM) *.class
 	@- echo "Data Cleansing Done.Ready to Compile"
-
-

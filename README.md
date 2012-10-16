@@ -34,7 +34,7 @@ Here are some commands that you can choose:
 
 ### Things I have Not implement
 
-Due to some reason, this program cannot block duplicate connections. (It can block self-connection)
+No
 
 ### Team Member
 Si Chen

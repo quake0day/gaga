@@ -1,7 +1,10 @@
 package echo;
 
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -24,31 +27,42 @@ public class Info extends Thread{
 	    start();
 	   }
 	 
+
+
+	 
 	 public void run(){
 	     InetAddress addr = null;
 	     boolean ipable = false;
 	     String ipaddr = null;
-		try {
-			addr = InetAddress.getLocalHost();
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} 
+	     // Get local IP address throught 8.8.8.8
 		 try{
-			 Hashtable env = new Hashtable();
-			 env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
-			 env.put("java.naming.provider.url",    "dns://8.8.8.8");
-			 DirContext ictx = new InitialDirContext(env);
-			 Attributes attrs1 = ictx.getAttributes(addr.getHostName(), new String[] {"A"});
-			// Attributes attrs2 = ictx.getAttributes("host2", new String[] {"A"});
-			 ipaddr = attrs1.toString().split(": ")[1];
-			 ipaddr = ipaddr.split("}")[0];
-			 System.out.println(ipaddr);
+				InetAddress IP = null;
+				try {
+					DatagramSocket udpsocket = null;
+					udpsocket = new DatagramSocket();
+					udpsocket.connect(InetAddress.getByName("8.8.8.8"), 53); // Using public DNS google
+					IP = udpsocket.getLocalAddress();
+					udpsocket.close();
+				} catch (SocketException e1) {
+					System.out.println("cannot get IP address through 8.8.8.8");
+				}
+				catch (UnknownHostException e1) {
+					System.out.println("cannot get IP address through 8.8.8.8");
+				}
+				ipaddr = IP.toString();
 			 ipable = true;
 		 } catch(Exception e){
 			 ipable = false;
 			 //System.out.println("No Internet connection and cannot link to public DNS 8.8.8.8. Using local IP address instead.");
 		 }
+		try {
+			
+			addr = InetAddress.getLocalHost();
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} 
+
 
 		 System.out.println ("IP address	hostname				udp port		tcp port");
 		 if(ipable == true){
