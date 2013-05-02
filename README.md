@@ -1,6 +1,6 @@
 # Gaga
 
-![Mou icon](http://foxallaccess.blogs.fox.com/files/2012/05/129.jpg)
+![gaga](http://images4.fanpop.com/image/photos/23200000/Lady-Gaga-Pokemon-pokemon-23219509-500-651.jpg)
 
 ## Overview
 
